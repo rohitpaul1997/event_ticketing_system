@@ -1,1 +1,0 @@
-# event_ticketing_system
