@@ -13,7 +13,6 @@ def hello_world():
     return "hello"
 
 
-
 if __name__ == "__main":
-    # userServer.debug = True
+    userServer.debug = True
     userServer.run()
