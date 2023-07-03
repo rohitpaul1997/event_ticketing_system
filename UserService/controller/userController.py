@@ -32,4 +32,28 @@ def register():
         con.commit()
     except Exception as e:
         print(str(e))
-    return "register"
+    return Response(response='{"Success":"User registered Successfully"}', mimetype='application/json', status=200)
+
+
+
+def login():
+    login_details = request.get_json()
+
+    # getting data from database 
+    cursor = con.cursor()
+    email_verification_query = "select password from user where email = '{}';".format(login_details['email'])
+    try:
+        cursor.execute(email_verification_query)
+        encrypted_pass = cursor.fetchall()
+    except:
+        pass    
+    if encrypted_pass == []:
+        return Response(response='{"error":"Email doesnot match...."}',mimetype= 'application/json',status = 404)
+    else:
+        encrypted_pass = encrypted_pass[0][0].encode('utf-8')
+        print(encrypted_pass) 
+        if bcrypt.checkpw(login_details['password'].encode('utf-8'), encrypted_pass):
+            return Response(response='{"Success":"Login Successfully"}',mimetype='application/json',status=200)
+        else:
+            return Response(response='{"error":"Password doesnot match...."}',mimetype= 'application/json',status = 404)
+    return "okay"
