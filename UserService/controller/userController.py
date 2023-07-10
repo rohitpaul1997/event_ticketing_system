@@ -8,6 +8,7 @@ from model.dbConn import con
 
 
 @check_reg_details
+@check_db
 def register():
     user_details = request.get_json()
     password = user_details['password']
@@ -25,14 +26,16 @@ def register():
         data = 1
     else:
         data += 1    
-    query = "insert into user values({},'{}','{}',{},'{}');".format(data, user_details['email'],hashedPassword,user_details['phone'],user_details['location'])
+    query = "insert into user values({},'{}','{}',{},'{}','{}');".format(data, user_details['email'],hashedPassword,user_details['phone'],'user',user_details['location'])
     print(query)
+    # return str(user_details['phone'])
     try:
         cursor.execute(query)
         con.commit()
+        return Response(response='{"Success":"User registered Successfully"}', mimetype='application/json', status=200)
     except Exception as e:
         print(str(e))
-    return Response(response='{"Success":"User registered Successfully"}', mimetype='application/json', status=200)
+        return str(e)
 
 
 
@@ -45,8 +48,9 @@ def login():
     try:
         cursor.execute(email_verification_query)
         encrypted_pass = cursor.fetchall()
-    except:
-        pass    
+    except Exception as e:
+        print(str(e))
+        return Response(response='{"error":"Something went wrong, please try again later..."}',mimetype= 'application/json',status = 500)
     if encrypted_pass == []:
         return Response(response='{"error":"Email doesnot match...."}',mimetype= 'application/json',status = 404)
     else:
@@ -56,4 +60,15 @@ def login():
             return Response(response='{"Success":"Login Successfully"}',mimetype='application/json',status=200)
         else:
             return Response(response='{"error":"Password doesnot match...."}',mimetype= 'application/json',status = 404)
-    return "okay"
+
+
+def user_details(email):
+    cursor = con.cursor()
+    get_user_details_query = "select * from user where email = '{}'".format(email)
+    try:
+        cursor.execute(get_user_details_query)
+        user_details = cursor.fetchall()
+        # print(user_details[0][0])
+        return {"email": user_details[0][1], "phone": user_details[0][3],"location":user_details[0][4]}
+    except Exception as e:
+        return str(e)       

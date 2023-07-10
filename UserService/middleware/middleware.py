@@ -3,6 +3,9 @@ from functools import wraps
 import re
 
 
+from model.dbConn import con
+
+
 # registration field checking middleware
 def check_reg_details(func):
     @wraps(func)
@@ -27,3 +30,22 @@ def check_reg_details(func):
             return Response(response='{"error":"please provide a correct Phone Number"}', mimetype='application/json', status=400)
         return func(*args, **kargs)
     return check_reg
+
+
+def check_db(func):
+    @wraps(func)
+    def check_user(*args,**kargs):
+        email = request.get_json()['email']
+
+        cursor = con.cursor()
+        query = "select id from user where email = '{}'".format(email)
+        try:
+            cursor.execute(query)
+            result = cursor.fetchall()
+        except Exception as e:
+            print(str(e))
+            return Response(response='{"error":"Something went wrong, please try again later..."}',mimetype= 'application/json',status = 500)
+        if result != []:
+            return Response(response='{"error":"email id already registered."}',mimetype= 'application/json',status = 500)
+        return func(*args, **kargs)
+    return check_user
